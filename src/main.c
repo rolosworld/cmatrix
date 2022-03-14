@@ -33,7 +33,7 @@ int matrix_dot_sub(CMatrix* A, CMatrix* B, CMatrix* C, size_t row, size_t col) {
       A->cols_sz != B->rows_sz) {
     return 0;
   }
-  
+
   C->values[row][col] = 0;
   for (size_t i = 0; i < A->cols_sz; i++) {
     C->values[row][col] += A->values[row][i] * B->values[i][col];
@@ -54,10 +54,45 @@ CMatrix* matrix_dot(CMatrix* A, CMatrix* B) {
   return C;
 }
 
+int matrix_transpose_dot_sub(CMatrix* A, CMatrix* C, size_t row, size_t col) {
+  if (A->rows_sz < row && A->cols_sz < col) {
+    return 0;
+  }
+
+  C->values[row][col] = 0;
+  for (size_t i = 0; i < A->cols_sz; i++) {
+    /* C = At * A */
+    C->values[row][col] += A->values[i][row] * A->values[i][col];
+  }
+
+  return 1;
+}
+
+CMatrix* matrix_transpose_dot(CMatrix* A) {
+  CMatrix* C = matrix_create(A->rows_sz, A->cols_sz);
+
+  for (size_t i = 0; i < C->rows_sz; i++) {
+    for (size_t j = 0; j < C->cols_sz; j++) {
+      matrix_transpose_dot_sub(A, C, i, j);
+    }
+  }
+
+  return C;
+}
+
 void matrix_print(CMatrix* M) {
   for (size_t i = 0; i < M->rows_sz; i++) {
     for (size_t j = 0; j < M->cols_sz; j++) {
       printf("%f ", M->values[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+void matrix_transpose_print(CMatrix* M) {
+  for (size_t i = 0; i < M->cols_sz; i++) {
+    for (size_t j = 0; j < M->rows_sz; j++) {
+      printf("%f ", M->values[j][i]);
     }
     printf("\n");
   }
@@ -84,8 +119,16 @@ int main() {
 
   CMatrix* C = matrix_dot(m, m);
   matrix_print(C);
+  printf("----\n");
+  matrix_transpose_print(C);
+
+  printf("At*A----\n");
+  CMatrix* D = matrix_transpose_dot(m);
+  matrix_print(D);
+
 
   matrix_free(m);
   matrix_free(C);
+  matrix_free(D);
   return 0;
 }
